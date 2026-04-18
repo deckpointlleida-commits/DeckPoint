@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DeckPoint Lleida | Comparador de Precios TCG</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="app">
+      <header class="main-header">
+        <nav class="container">
+          <div class="logo">
+            <a href="/" id="logo-link">
+              <h1>Deck<span>Point Lleida</span></h1>
+            </a>
+          </div>
+          <div class="search-container">
+            <input type="text" id="card-search" placeholder="Busca tu carta (MTG, Pokémon, Yu-Gi-Oh)..." autocomplete="off">
+            <button id="search-btn" aria-label="Buscar">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            </button>
+          </div>
+          <div class="nav-links">
+            <select id="game-filter">
+              <option value="all">Todos los juegos</option>
+              <option value="mtg">Magic: The Gathering</option>
+              <option value="pokemon">Pokémon TCG</option>
+              <option value="yugioh">Yu-Gi-Oh!</option>
+            </select>
+          </div>
+        </nav>
+      </header>
+
+      <main class="container">
+        <section id="hero">
+          <h2>Encuentra el mejor precio para tu mazo</h2>
+          <p>Compara precios en tiempo real de las principales tiendas y marketplaces de TCG.</p>
+        </section>
+
+        <div id="results-count" class="hidden"></div>
+        <section id="results-grid" class="card-grid">
+          <!-- Cards will be rendered here -->
+          <div class="empty-state">
+            <p>Empieza a buscar para ver resultados...</p>
+          </div>
+        </section>
+      </main>
+
+      <!-- Card Detail Modal -->
+      <div id="card-modal" class="modal hidden" aria-hidden="true">
+        <div class="modal-overlay"></div>
+        <div class="modal-content">
+          <button id="close-modal" class="close-btn" aria-label="Cerrar">&times;</button>
+          <div class="modal-body">
+            <div class="modal-image">
+              <img id="modal-card-img" src="" alt="">
+            </div>
+            <div class="modal-info">
+              <h2 id="modal-card-title">Título de la carta</h2>
+              <p id="modal-card-set" class="set-name">Nombre del set</p>
+              
+              <div id="modal-card-stats" class="card-details-grid">
+                <!-- Dynamic stats like ATK/DEF, HP, Rarity, etc. will be inserted here -->
+              </div>
+
+              <div id="modal-card-text" class="card-text-box">
+                <!-- Text will be inserted here -->
+              </div>
+
+              <div class="modal-prices">
+                <h3>Precios y Compra</h3>
+                <div id="modal-prices-list" class="prices-links-grid">
+                  <!-- Purchase links will be inserted here -->
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="main-footer">
+        <div class="container">
+          <div class="footer-links">
+            <a href="https://www.instagram.com/deckpointlleida" target="_blank" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg>
+              <span>Instagram: @deckpointlleida</span>
+            </a>
+            <a href="mailto:deckpointlleida@gmail.com" aria-label="Email">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              <span>Email: deckpointlleida@gmail.com</span>
+            </a>
+          </div>
+          <p>2026 DeckPoint Lleida - Tu comparador TCG definitivo.</p>
+        </div>
+      </footer>
+    </div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
