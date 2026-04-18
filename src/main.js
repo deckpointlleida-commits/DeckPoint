@@ -1,86 +1,149 @@
 import './style.css'
+import { translations } from './translations.js'
 
-// Configuration & Tasa de Cambio (Aprox)
 const USD_TO_EUR = 0.93;
 
 const state = {
   currentCards: [],
   currentGame: 'all',
-  searchQuery: ''
+  searchQuery: '',
+  lang: localStorage.getItem('deckpoint_lang') || 
+         (navigator.language.startsWith('ca') ? 'ca' : 
+          navigator.language.startsWith('es') ? 'es' : 'en')
 };
 
 // DOM Elements
 const searchInput = document.getElementById('card-search');
 const searchBtn = document.getElementById('search-btn');
 const gameFilter = document.getElementById('game-filter');
+const priceSort = document.getElementById('price-sort');
 const logoLink = document.getElementById('logo-link');
 const resultsGrid = document.getElementById('results-grid');
 const heroSection = document.getElementById('hero');
-
-// Modal Elements
+const langButtons = document.querySelectorAll('.lang-btn');
 const cardModal = document.getElementById('card-modal');
 const closeModalBtn = document.getElementById('close-modal');
-const modalOverlay = cardModal.querySelector('.modal-overlay');
+const modalOverlay = cardModal?.querySelector('.modal-overlay');
 
-// Initialize
 function init() {
-  searchBtn.addEventListener('click', handleSearch);
-  searchInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') handleSearch();
+  setLanguage(state.lang);
+
+  searchBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    handleSearch();
   });
-  gameFilter.addEventListener('change', (e) => {
+
+  searchInput?.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSearch();
+    }
+  });
+
+  gameFilter?.addEventListener('change', (e) => {
     state.currentGame = e.target.value;
     if (state.searchQuery) handleSearch();
   });
-  logoLink.addEventListener('click', (e) => {
+
+  priceSort?.addEventListener('change', (e) => {
+    handleSort(e.target.value);
+  });
+
+  logoLink?.addEventListener('click', (e) => {
     e.preventDefault();
     resetUI();
   });
 
-  closeModalBtn.addEventListener('click', closeModal);
-  modalOverlay.addEventListener('click', closeModal);
+  langButtons.forEach(btn => {
+    btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+  });
+
+  closeModalBtn?.addEventListener('click', closeModal);
+  modalOverlay?.addEventListener('click', closeModal);
   window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') closeModal();
   });
+
+  initTiltEffect();
+}
+
+function setLanguage(lang) {
+  state.lang = lang;
+  localStorage.setItem('deckpoint_lang', lang);
+  document.documentElement.lang = lang;
+  langButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
+  updateContent();
+  if (state.currentCards.length > 0) renderResults(state.currentCards);
+  else if (state.searchQuery === '') resetUI();
+}
+
+function updateContent() {
+  const dict = translations[state.lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.dataset.i18n;
+    if (dict[key]) {
+      if (el.tagName === 'TITLE') document.title = dict[key];
+      else el.innerHTML = dict[key];
+    }
+  });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+    const key = el.dataset.i18nPlaceholder;
+    if (dict[key]) el.placeholder = dict[key];
+  });
+}
+
+function t(key, params = {}) {
+  let text = translations[state.lang][key] || key;
+  Object.keys(params).forEach(p => text = text.replace(`{${p}}`, params[p]));
+  return text;
 }
 
 function resetUI() {
   state.searchQuery = '';
   state.currentCards = [];
-  searchInput.value = '';
-  heroSection.classList.remove('hidden');
-  resultsGrid.innerHTML = `
-    <div class="empty-state">
-      <p>Empieza a buscar para ver resultados...</p>
-    </div>
-  `;
+  if (searchInput) searchInput.value = '';
+  heroSection?.classList.remove('hidden');
+  priceSort?.classList.add('hidden');
+  if (resultsGrid) {
+    resultsGrid.innerHTML = `<div class="empty-state"><p>${t('emptyState')}</p></div>`;
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// Helper Conversión
-function formatPriceToEur(value, sourceCurrency = 'USD') {
-  if (!value || value === '0.00' || value === '0') return 'N/A';
+function parsePrice(value, sourceCurrency = 'USD') {
+  if (!value || value === '0.00' || value === '0') return null;
   const numValue = parseFloat(value);
-  if (isNaN(numValue)) return 'N/A';
-  const finalValue = sourceCurrency === 'USD' ? numValue * USD_TO_EUR : numValue;
-  return `€${finalValue.toFixed(2)}`;
+  if (isNaN(numValue)) return null;
+  return sourceCurrency === 'USD' ? numValue * USD_TO_EUR : numValue;
 }
 
-// Search Logic
+function formatPrice(eurValue) {
+  if (eurValue === null) return 'N/A';
+  return `€${eurValue.toFixed(2)}`;
+}
+
+let searchLock = false;
+
 async function handleSearch() {
-  const query = searchInput.value.trim();
+  if (searchLock) return;
+  const query = searchInput?.value.trim();
   if (!query) return;
+  
   state.searchQuery = query;
-  showLoading();
+  searchLock = true;
+  showSkeleton();
+  
   try {
     const cards = await fetchAllGames(query, state.currentGame);
     state.currentCards = cards;
     renderResults(cards);
   } catch (error) {
     console.error('Search error:', error);
-    renderError('Ocurrió un error al buscar las cartas.');
+    renderError('Error en la búsqueda.');
   } finally {
     hideLoading();
+    // Prevent accidental clicks for 400ms after results appear
+    setTimeout(() => { searchLock = false; }, 400);
   }
 }
 
@@ -93,180 +156,204 @@ async function fetchAllGames(query, game) {
   return results.flat().slice(0, 30);
 }
 
+// MTG
 async function fetchMtg(query) {
   try {
     const response = await fetch(`https://api.scryfall.com/cards/search?q=${encodeURIComponent(query)}`);
     if (!response.ok) return [];
     const data = await response.json();
-    return formatMtgCards(data.data || []);
+    return data.data.map(card => {
+      const pEur = parsePrice(card.prices.usd, 'USD') || parsePrice(card.prices.eur, 'EUR');
+      return {
+        id: card.id,
+        game: t('mtg'),
+        name: card.name,
+        set: card.set_name,
+        image: card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '',
+        text: card.oracle_text || '',
+        stats: [{ label: t('rarity'), value: card.rarity }, { label: t('type'), value: card.type_line }],
+        sortPrice: pEur,
+        prices: [
+          { store: 'TCGPlayer', price: formatPrice(parsePrice(card.prices.usd, 'USD')), url: card.purchase_uris?.tcgplayer },
+          { store: 'Cardmarket', price: formatPrice(parsePrice(card.prices.eur, 'EUR')), url: card.purchase_uris?.cardmarket }
+        ]
+      };
+    });
   } catch { return []; }
 }
 
+// Pokemon
 async function fetchPokemon(query) {
   try {
     const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"*${encodeURIComponent(query)}*"&pageSize=12`);
     if (!response.ok) return [];
     const data = await response.json();
-    return formatPokemonCards(data.data || []);
+    return data.data.map(card => {
+      const pUsd = card.tcgplayer?.prices?.holofoil?.market || card.tcgplayer?.prices?.normal?.market;
+      const pEur = parsePrice(pUsd, 'USD');
+      return {
+        id: card.id,
+        game: t('pokemon'),
+        name: card.name,
+        set: card.set.name,
+        image: card.images.large,
+        text: card.flavorText || '',
+        stats: [{ label: t('rarity'), value: card.rarity || 'N/A' }, { label: t('hp'), value: card.hp || 'N/A' }],
+        sortPrice: pEur,
+        prices: [
+          { store: 'TCGPlayer', price: formatPrice(pEur), url: card.tcgplayer?.url },
+          { store: 'Cardmarket', price: formatPrice(parsePrice(card.cardmarket?.prices?.averageSellPrice, 'EUR')), url: card.cardmarket?.url }
+        ]
+      };
+    });
   } catch { return []; }
 }
 
+// Yugioh
 async function fetchYugioh(query) {
   try {
     const response = await fetch(`https://db.ygoprodeck.com/api/v7/cardinfo.php?fname=${encodeURIComponent(query)}`);
     if (!response.ok) return [];
     const data = await response.json();
-    return formatYugiohCards(data.data || []);
+    return data.data.slice(0, 15).map(card => {
+      const prices = card.card_prices?.[0];
+      const pEur = parsePrice(prices?.tcgplayer_price, 'USD');
+      return {
+        id: card.id,
+        game: t('yugioh'),
+        name: card.name,
+        set: card.card_sets?.[0]?.set_name || 'Varios',
+        image: card.card_images?.[0]?.image_url,
+        text: card.desc,
+        stats: [{ label: t('type'), value: card.type }, { label: t('atkDef'), value: `${card.atk}/${card.def}` }],
+        sortPrice: pEur,
+        prices: [
+          { store: 'TCGPlayer', price: formatPrice(pEur), url: `https://www.tcgplayer.com/search/all/product?q=${encodeURIComponent(card.name)}` },
+          { store: 'Cardmarket', price: formatPrice(parsePrice(prices?.cardmarket_price, 'EUR')), url: `https://www.cardmarket.com/en/YuGiOh/Products/Search?searchString=${encodeURIComponent(card.name)}` }
+        ]
+      };
+    });
   } catch { return []; }
 }
 
-// Formatters con "Más Info"
-function formatMtgCards(cards) {
-  return cards.map(card => ({
-    id: card.id,
-    game: 'Magic: The Gathering',
-    name: card.name,
-    set: card.set_name,
-    image: card.image_uris?.normal || card.card_faces?.[0]?.image_uris?.normal || '',
-    text: card.oracle_text || '',
-    stats: [
-      { label: 'Rareza', value: card.rarity },
-      { label: 'Tipo', value: card.type_line },
-      { label: 'Costo', value: card.mana_cost || 'N/A' },
-      { label: 'Artista', value: card.artist }
-    ],
-    prices: [
-      { store: 'TCGPlayer', price: formatPriceToEur(card.prices.usd, 'USD'), url: card.purchase_uris?.tcgplayer },
-      { store: 'Cardmarket', price: formatPriceToEur(card.prices.eur, 'EUR'), url: card.purchase_uris?.cardmarket }
-    ]
-  }));
+function handleSort(criteria) {
+  if (criteria === 'default') return;
+  state.currentCards.sort((a, b) => {
+    if (criteria === 'az') return a.name.localeCompare(b.name);
+    if (criteria === 'za') return b.name.localeCompare(a.name);
+    const pA = a.sortPrice || 999999;
+    const pB = b.sortPrice || 999999;
+    return criteria === 'asc' ? pA - pB : pB - pA;
+  });
+  renderResults(state.currentCards);
 }
 
-function formatPokemonCards(cards) {
-  return cards.map(card => ({
-    id: card.id,
-    game: 'Pokémon TCG',
-    name: card.name,
-    set: card.set.name,
-    image: card.images.large,
-    text: card.flavorText || card.abilities?.[0]?.text || card.attacks?.[0]?.text || '',
-    stats: [
-      { label: 'Rareza', value: card.rarity || 'N/A' },
-      { label: 'Tipo', value: card.types?.join(', ') || 'N/A' },
-      { label: 'HP', value: card.hp || 'N/A' },
-      { label: 'Etapa', value: card.subtypes?.join(', ') || 'N/A' }
-    ],
-    prices: [
-      { store: 'TCGPlayer', price: formatPriceToEur(card.tcgplayer?.prices?.holofoil?.market || card.tcgplayer?.prices?.normal?.market, 'USD'), url: card.tcgplayer?.url },
-      { store: 'Cardmarket', price: formatPriceToEur(card.cardmarket?.prices?.averageSellPrice, 'EUR'), url: card.cardmarket?.url }
-    ]
-  }));
-}
-
-function formatYugiohCards(cards) {
-  return cards.slice(0, 15).map(card => ({
-    id: card.id,
-    game: 'Yu-Gi-Oh!',
-    name: card.name,
-    set: card.card_sets?.[0]?.set_name || 'Varios',
-    image: card.card_images?.[0]?.image_url,
-    text: card.desc,
-    stats: [
-      { label: 'Tipo', value: card.type },
-      { label: 'Atributo', value: card.attribute || 'N/A' },
-      { label: 'Nivel/Rango', value: card.level || card.rank || 'N/A' },
-      { label: 'ATK/DEF', value: card.atk !== undefined ? `${card.atk}/${card.def}` : 'N/A' }
-    ],
-    prices: [
-      { store: 'TCGPlayer', price: formatPriceToEur(card.card_prices?.[0]?.tcgplayer_price, 'USD'), url: `https://www.tcgplayer.com/search/all/product?q=${encodeURIComponent(card.name)}` },
-      { store: 'Cardmarket', price: formatPriceToEur(card.card_prices?.[0]?.cardmarket_price, 'EUR'), url: `https://www.cardmarket.com/en/YuGiOh/Products/Search?searchString=${encodeURIComponent(card.name)}` }
-    ]
-  }));
-}
-
-// Rendering
 function renderResults(cards) {
-  heroSection.classList.add('hidden');
+  if (!resultsGrid) return;
+  heroSection?.classList.add('hidden');
+  priceSort?.classList.remove('hidden');
   resultsGrid.innerHTML = '';
+
   if (cards.length === 0) {
-    resultsGrid.innerHTML = `<div class="empty-state"><p>No se encontraron cartas.</p></div>`;
+    resultsGrid.innerHTML = `<div class="empty-state"><p>${t('noResults', { query: state.searchQuery })}</p></div>`;
+    priceSort?.classList.add('hidden');
     return;
   }
 
   const disclaimer = document.createElement('div');
   disclaimer.className = 'price-disclaimer';
-  disclaimer.innerHTML = '<p>* Precios convertidos a <strong>Euros (€)</strong>. Haz clic para el valor real.</p>';
+  disclaimer.innerHTML = `<p>${t('disclaimer')}</p>`;
   resultsGrid.appendChild(disclaimer);
 
   cards.forEach(card => {
     const cardEl = document.createElement('div');
     cardEl.className = 'card-item';
+    const gClass = card.game === t('pokemon') ? 'pokemon' : card.game === t('yugioh') ? 'yu-gi-oh' : 'magic';
+    
     cardEl.innerHTML = `
-      <div class="card-image">
-        <span class="game-tag game-${card.game.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[:!\s]+/)[0]}">${card.game}</span>
-        <img src="${card.image}" alt="${card.name}" loading="lazy">
-      </div>
-      <div class="card-info">
-        <h3>${card.name}</h3>
-        <p class="set-name">${card.set}</p>
-        <table class="price-table">
-          ${card.prices.map(p => `
-            <tr>
-              <td class="store-name">${p.store}</td>
-              <td class="price-cell">
-                ${p.url && p.price !== 'N/A' ? `<a href="${p.url}" target="_blank" class="price-value">${p.price}</a>` : `<span class="price-value">${p.price}</span>`}
-              </td>
-            </tr>
-          `).join('')}
-        </table>
-      </div>
+      <div class="card-image"><span class="game-tag game-${gClass}">${card.game}</span><img src="${card.image}" loading="lazy"></div>
+      <div class="card-info"><h3>${card.name}</h3><p class="set-name">${card.set}</p>
+      <table class="price-table">${card.prices.map(p => `<tr><td>${p.store}</td><td class="price-cell">${p.url && p.price !== 'N/A' ? `<a href="${p.url}" target="_blank" class="price-value" onclick="event.stopPropagation()">${p.price}</a>` : `<span>${p.price}</span>`}</td></tr>`).join('')}</table></div>
     `;
-    cardEl.addEventListener('click', (e) => { if (!e.target.closest('a')) openModal(card); });
+
+    cardEl.addEventListener('click', (e) => {
+      if (searchLock) return;
+      e.stopPropagation();
+      openModal(card);
+    });
     resultsGrid.appendChild(cardEl);
   });
 }
 
+function showSkeleton() {
+  if (!resultsGrid) return;
+  heroSection?.classList.add('hidden');
+  priceSort?.classList.add('hidden');
+  resultsGrid.innerHTML = Array(8).fill(0).map(() => `<div class="skeleton skeleton-card"></div>`).join('');
+  if (searchBtn) searchBtn.disabled = true;
+}
+
+function hideLoading() {
+  if (searchBtn) {
+    searchBtn.disabled = false;
+    searchBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
+  }
+}
+
 function openModal(card) {
-  document.getElementById('modal-card-img').src = card.image;
-  document.getElementById('modal-card-title').textContent = card.name;
-  document.getElementById('modal-card-set').textContent = card.set;
-  document.getElementById('modal-card-text').innerHTML = card.text.replace(/\n/g, '<br>');
+  if (!cardModal) return;
+  const img = document.getElementById('modal-card-img');
+  if (img) img.src = card.image;
+  
+  const title = document.getElementById('modal-card-title');
+  if (title) title.textContent = card.name;
+  
+  const set = document.getElementById('modal-card-set');
+  if (set) set.textContent = card.set;
+  
+  const text = document.getElementById('modal-card-text');
+  if (text) text.innerHTML = card.text.replace(/\n/g, '<br>');
 
-  const statsGrid = document.getElementById('modal-card-stats');
-  statsGrid.innerHTML = card.stats.map(s => `
-    <div class="detail-item">
-      <span class="label">${s.label}</span>
-      <span class="value">${s.value}</span>
-    </div>
-  `).join('');
+  const stats = document.getElementById('modal-card-stats');
+  if (stats) stats.innerHTML = card.stats.map(s => `<div class="detail-item"><span class="label">${s.label}</span><span class="value">${s.value}</span></div>`).join('');
 
-  const pricesGrid = document.getElementById('modal-prices-list');
-  pricesGrid.innerHTML = card.prices.map(p => {
-    if (p.price === 'N/A') return '';
-    return `<a href="${p.url || '#'}" target="_blank" class="purchase-link"><span class="store">${p.store}</span><span class="price">${p.price}</span></a>`;
-  }).join('');
+  const prices = document.getElementById('modal-prices-list');
+  if (prices) {
+    prices.innerHTML = card.prices.map(p => p.price === 'N/A' ? '' : `<a href="${p.url || '#'}" target="_blank" class="purchase-link"><span>${p.store}</span><span class="price">${p.price}</span></a>`).join('') + `<p class="modal-disclaimer">${t('modalDisclaimer')}</p>`;
+  }
 
   cardModal.classList.remove('hidden');
-  cardModal.setAttribute('aria-hidden', 'false');
   document.body.style.overflow = 'hidden';
 }
 
 function closeModal() {
-  cardModal.classList.add('hidden');
-  cardModal.setAttribute('aria-hidden', 'true');
+  cardModal?.classList.add('hidden');
   document.body.style.overflow = '';
 }
 
-function showLoading() {
-  searchBtn.innerHTML = '<svg class="spinner" viewBox="0 0 50 50"><circle cx="25" cy="25" r="20" fill="none" stroke="currentColor" stroke-width="5"></circle></svg>';
-  searchBtn.disabled = true;
+function initTiltEffect() {
+  const container = document.querySelector('.card-tilt-container');
+  const inner = document.querySelector('.card-tilt-inner');
+  const shine = document.querySelector('.foil-shine');
+
+  container?.addEventListener('mousemove', (e) => {
+    const { left, top, width, height } = container.getBoundingClientRect();
+    const x = (e.clientX - left) / width;
+    const y = (e.clientY - top) / height;
+    const rx = (y - 0.5) * 20;
+    const ry = (x - 0.5) * -20;
+    if (inner) inner.style.transform = `rotateX(${rx}deg) rotateY(${ry}deg)`;
+    if (shine) shine.style.background = `radial-gradient(circle at ${x * 100}% ${y * 100}%, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 80%)`;
+  });
+
+  container?.addEventListener('mouseleave', () => {
+    if (inner) inner.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    if (shine) shine.style.background = 'none';
+  });
 }
 
-function hideLoading() {
-  searchBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>';
-  searchBtn.disabled = false;
+function renderError(message) {
+  if (resultsGrid) resultsGrid.innerHTML = `<div class="error-state"><p>${message}</p></div>`;
 }
-
-function renderError(message) { resultsGrid.innerHTML = `<div class="error-state"><p>${message}</p></div>`; }
 
 init();

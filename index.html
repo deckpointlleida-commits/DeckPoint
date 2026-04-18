@@ -2,9 +2,63 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>DeckPoint Lleida | Comparador de Precios TCG</title>
+    
+    <!-- Primary Meta Tags -->
+    <title data-i18n="title">DeckPoint Lleida | Comparador de Precios TCG</title>
+    <meta name="description" content="Compara precios de cartas Magic (MTG), Pokémon y Yu-Gi-Oh en tiempo real. El mejor comparador de TCG en Lleida y España.">
+    <meta name="keywords" content="TCG Lleida, Magic The Gathering, Pokémon TCG, Yu-Gi-Oh, Precios cartas, Lleida cartas, Comparador TCG">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://deckpointlleida.es/">
+    <meta property="og:title" content="DeckPoint Lleida | Comparador de Precios TCG">
+    <meta property="og:description" content="Encuentra el mejor precio para tus cartas TCG en segundos. Comparador especializado en Lleida.">
+    <meta property="og:image" content="https://deckpointlleida.es/favicon.png">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": "DeckPoint Lleida",
+      "image": "https://deckpointlleida.es/favicon.png",
+      "@id": "https://deckpointlleida.es/",
+      "url": "https://deckpointlleida.es/",
+      "telephone": "",
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": "",
+        "addressLocality": "Lleida",
+        "postalCode": "25001",
+        "addressCountry": "ES"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": 41.6176,
+        "longitude": 0.6206
+      },
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday",
+          "Tuesday",
+          "Wednesday",
+          "Thursday",
+          "Friday",
+          "Saturday",
+          "Sunday"
+        ],
+        "opens": "00:00",
+        "closes": "23:59"
+      },
+      "sameAs": [
+        "https://www.instagram.com/deckpointlleida"
+      ]
+    }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
@@ -19,33 +73,46 @@
             </a>
           </div>
           <div class="search-container">
-            <input type="text" id="card-search" placeholder="Busca tu carta (MTG, Pokémon, Yu-Gi-Oh)..." autocomplete="off">
+            <input type="text" id="card-search" data-i18n-placeholder="searchPlaceholder" placeholder="Busca tu carta (MTG, Pokémon, Yu-Gi-Oh)..." autocomplete="off">
             <button id="search-btn" aria-label="Buscar">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
           </div>
-          <div class="nav-links">
-            <select id="game-filter">
-              <option value="all">Todos los juegos</option>
-              <option value="mtg">Magic: The Gathering</option>
-              <option value="pokemon">Pokémon TCG</option>
-              <option value="yugioh">Yu-Gi-Oh!</option>
-            </select>
+          <div class="nav-controls">
+            <div class="filter-group">
+              <select id="game-filter">
+                <option value="all" data-i18n="allGames">Todos los juegos</option>
+                <option value="mtg" data-i18n="mtg">Magic: The Gathering</option>
+                <option value="pokemon" data-i18n="pokemon">Pokémon TCG</option>
+                <option value="yugioh" data-i18n="yugioh">Yu-Gi-Oh!</option>
+              </select>
+              <select id="price-sort" class="hidden">
+                <option value="default" data-i18n="sortBy">Ordenar por...</option>
+                <option value="asc" data-i18n="priceLow">Precio: Bajo a Alto</option>
+                <option value="desc" data-i18n="priceHigh">Precio: Alto a Bajo</option>
+                <option value="az" data-i18n="sortAZ">Nombre: A - Z</option>
+                <option value="za" data-i18n="sortZA">Nombre: Z - A</option>
+              </select>
+            </div>
+            <div class="lang-switcher">
+              <button class="lang-btn" data-lang="es">ES</button>
+              <button class="lang-btn" data-lang="ca">CA</button>
+              <button class="lang-btn" data-lang="en">EN</button>
+            </div>
           </div>
         </nav>
       </header>
 
       <main class="container">
         <section id="hero">
-          <h2>Encuentra el mejor precio para tu mazo</h2>
-          <p>Compara precios en tiempo real de las principales tiendas y marketplaces de TCG.</p>
+          <h2 data-i18n="heroTitle">Encuentra el mejor precio para tu mazo</h2>
+          <p data-i18n="heroSub">Compara precios en tiempo real de las principales tiendas y marketplaces de TCG.</p>
         </section>
 
         <div id="results-count" class="hidden"></div>
         <section id="results-grid" class="card-grid">
-          <!-- Cards will be rendered here -->
           <div class="empty-state">
-            <p>Empieza a buscar para ver resultados...</p>
+            <p data-i18n="emptyState">Empieza a buscar para ver resultados...</p>
           </div>
         </section>
       </main>
@@ -57,14 +124,19 @@
           <button id="close-modal" class="close-btn" aria-label="Cerrar">&times;</button>
           <div class="modal-body">
             <div class="modal-image">
-              <img id="modal-card-img" src="" alt="">
+              <div class="card-tilt-container">
+                <div class="card-tilt-inner">
+                  <img id="modal-card-img" src="" alt="">
+                  <div class="foil-shine"></div>
+                </div>
+              </div>
             </div>
             <div class="modal-info">
               <h2 id="modal-card-title">Título de la carta</h2>
               <p id="modal-card-set" class="set-name">Nombre del set</p>
               
               <div id="modal-card-stats" class="card-details-grid">
-                <!-- Dynamic stats like ATK/DEF, HP, Rarity, etc. will be inserted here -->
+                <!-- Dynamic stats will be inserted here -->
               </div>
 
               <div id="modal-card-text" class="card-text-box">
@@ -72,7 +144,7 @@
               </div>
 
               <div class="modal-prices">
-                <h3>Precios y Compra</h3>
+                <h3 data-i18n="modalPrices">Precios y Compra</h3>
                 <div id="modal-prices-list" class="prices-links-grid">
                   <!-- Purchase links will be inserted here -->
                 </div>
@@ -94,7 +166,7 @@
               <span>Email: deckpointlleida@gmail.com</span>
             </a>
           </div>
-          <p>2026 DeckPoint Lleida - Tu comparador TCG definitivo.</p>
+          <p data-i18n="footerText">2026 DeckPoint Lleida - Tu comparador TCG definitivo.</p>
         </div>
       </footer>
     </div>
