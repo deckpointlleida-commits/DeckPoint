@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/png" href="/favicon.png" />
+    <link rel="icon" type="image/png" href="favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
     <!-- Primary Meta Tags -->
@@ -62,6 +62,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="src/style.css">
   </head>
   <body>
     <div id="app">
@@ -69,7 +70,19 @@
         <nav class="container">
           <div class="logo">
             <a href="/" id="logo-link">
-              <h1>Deck<span>Point Lleida</span></h1>
+              <div class="logo-icon">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="4" width="12" height="16" rx="2" fill="currentColor" fill-opacity="0.2" stroke="currentColor" stroke-width="2"/>
+                  <rect x="8" y="4" width="12" height="16" rx="2" fill="url(#logo-gradient)" stroke="white" stroke-width="2"/>
+                  <defs>
+                    <linearGradient id="logo-gradient" x1="8" y1="4" x2="20" y2="20" gradientUnits="userSpaceOnUse">
+                      <stop stop-color="#3b82f6"/>
+                      <stop offset="1" stop-color="#2dd4bf"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <h1>Deck<span>Point</span> <small>Lleida</small></h1>
             </a>
           </div>
           <div class="search-container">
@@ -170,6 +183,6 @@
         </div>
       </footer>
     </div>
-    <script type="module" src="/src/main.js"></script>
+    <script type="module" src="src/main.js"></script>
   </body>
 </html>
