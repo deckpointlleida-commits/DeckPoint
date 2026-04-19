@@ -1,0 +1,19 @@
+{
+  "name": "DeckPoint Lleida | Comparador TCG",
+  "short_name": "DeckPoint",
+  "description": "El mejor comparador de precios TCG en Lleida y España.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "favicon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "lang": "es-ES",
+  "orientation": "portrait"
+}

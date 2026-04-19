@@ -30,7 +30,12 @@ export const translations = {
     priceLow: "Precio: Bajo a Alto",
     priceHigh: "Precio: Alto a Bajo",
     sortAZ: "Nombre: A - Z",
-    sortZA: "Nombre: Z - A"
+    sortZA: "Nombre: Z - A",
+    faqTitle: "Preguntas Frecuentes sobre Precios TCG",
+    faq1Q: "¿Dónde comprar cartas TCG baratas en España?",
+    faq1A: "En DeckPoint Lleida comparamos tiendas como Cardmarket y TCGPlayer para que siempre encuentres el precio más bajo.",
+    faq2Q: "¿Cómo saber el valor de una carta Pokémon o Magic?",
+    faq2A: "Simplemente busca el nombre de la carta en nuestro buscador y verás el precio de mercado actualizado en tiempo real."
   },
   ca: {
     title: "DeckPoint Lleida | Comparador de Preus TCG",
@@ -63,7 +68,12 @@ export const translations = {
     priceLow: "Preu: Baix a Alt",
     priceHigh: "Preu: Alt a Baix",
     sortAZ: "Nom: A - Z",
-    sortZA: "Nom: Z - A"
+    sortZA: "Nom: Z - A",
+    faqTitle: "Preguntes Freqüents sobre Preus TCG",
+    faq1Q: "On comprar cartes TCG barates a Espanya?",
+    faq1A: "A DeckPoint Lleida comparem botigues com Cardmarket i TCGPlayer perquè sempre trobis el preu més baix.",
+    faq2Q: "Com saber el valor d'una carta Pokémon o Magic?",
+    faq2A: "Simplement busca el nom de la carta al nostre cercador i veuràs el preu de mercat actualitzat en temps real."
   },
   en: {
     title: "DeckPoint Lleida | TCG Price Comparator",
@@ -96,6 +106,11 @@ export const translations = {
     priceLow: "Price: Low to High",
     priceHigh: "Price: High to Low",
     sortAZ: "Name: A - Z",
-    sortZA: "Name: Z - A"
+    sortZA: "Name: Z - A",
+    faqTitle: "Frequently Asked Questions about TCG Prices",
+    faq1Q: "Where to buy cheap TCG cards in Spain?",
+    faq1A: "At DeckPoint Lleida we compare stores like Cardmarket and TCGPlayer so you always find the lowest price.",
+    faq2Q: "How to know the value of a Pokémon or Magic card?",
+    faq2A: "Simply search for the name of the card in our search engine and you will see the market price updated in real time."
   }
 };

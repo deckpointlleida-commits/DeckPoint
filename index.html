@@ -5,6 +5,9 @@
     <link rel="icon" type="image/png" href="favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     
+    <!-- Security & Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' https: 'unsafe-inline' 'unsafe-eval' data: blob:; img-src 'self' https: data: blob:; connect-src 'self' https:;">
+    
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-ECB16G1XQN"></script>
     <script>
@@ -20,7 +23,22 @@
     <meta name="description" data-i18n="metaDesc" content="Compara precios de cartas Magic (MTG), Pokémon y Yu-Gi-Oh en tiempo real. El mejor comparador de TCG en Lleida y España con envíos a toda la península.">
     <meta name="keywords" content="TCG Lleida, Magic The Gathering, Pokémon TCG, Yu-Gi-Oh, Precios cartas, Lleida cartas, Comparador TCG, Cartas baratas, MTG España">
     <meta name="author" content="DeckPoint Lleida">
+    <meta name="referrer" content="no-referrer-when-downgrade">
+    <meta name="color-scheme" content="dark light">
     <link rel="canonical" href="https://deckpointlleida.com/">
+
+    <!-- Performance: DNS Preconnect for APIs and Stores -->
+    <link rel="preconnect" href="https://api.scryfall.com">
+    <link rel="preconnect" href="https://api.pokemontcg.io">
+    <link rel="preconnect" href="https://db.ygoprodeck.com">
+    <link rel="preconnect" href="https://www.tcgplayer.com">
+    <link rel="preconnect" href="https://www.cardmarket.com">
+    <link rel="dns-prefetch" href="https://api.scryfall.com">
+    <link rel="dns-prefetch" href="https://api.pokemontcg.io">
+    <link rel="dns-prefetch" href="https://db.ygoprodeck.com">
+
+    <!-- Search Integration -->
+    <link rel="search" type="application/opensearchdescription+xml" title="DeckPoint Search" href="/opensearch.xml">
 
     <!-- Language Alternates -->
     <link rel="alternate" hreflang="es" href="https://deckpointlleida.com/" />
@@ -42,46 +60,74 @@
     <meta property="twitter:description" content="Encuentra el mejor precio para tus cartas TCG en segundos. Comparador especializado en Lleida.">
     <meta property="twitter:image" content="https://deckpointlleida.com/favicon.png">
 
-    <!-- JSON-LD Structured Data -->
+    <!-- PWA & Mobile Branding -->
+    <meta name="theme-color" content="#3b82f6" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="apple-touch-icon" href="favicon.png" />
+
+    <!-- Font Preloading for Performance -->
+    <link rel="preload" href="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfMZg.p.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://fonts.gstatic.com/s/outfit/v11/QGYsz_MV7Be5pZfKdlI.woff2" as="font" type="font/woff2" crossorigin>
+
+    <!-- JSON-LD Structured Data (Top Tier: Local + Organization + WebSite) -->
     <script type="application/ld+json">
-    {
-      "@context": "https://schema.org",
-      "@type": "LocalBusiness",
-      "name": "DeckPoint Lleida",
-      "image": "https://deckpointlleida.com/favicon.png",
-      "@id": "https://deckpointlleida.com/",
-      "url": "https://deckpointlleida.com/",
-      "telephone": "",
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "",
-        "addressLocality": "Lleida",
-        "postalCode": "25001",
-        "addressCountry": "ES"
+    [
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "DeckPoint Lleida",
+        "url": "https://deckpointlleida.com/",
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://deckpointlleida.com/?s={search_term_string}",
+          "query-input": "required name=search_term_string"
+        }
       },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": 41.6176,
-        "longitude": 0.6206
+      {
+        "@context": "https://schema.org",
+        "@type": "Organization",
+        "name": "DeckPoint Lleida",
+        "url": "https://deckpointlleida.com/",
+        "logo": "https://deckpointlleida.com/favicon.png",
+        "sameAs": [
+          "https://www.instagram.com/deckpointlleida"
+        ]
       },
-      "openingHoursSpecification": {
-        "@type": "OpeningHoursSpecification",
-        "dayOfWeek": [
-          "Monday",
-          "Tuesday",
-          "Wednesday",
-          "Thursday",
-          "Friday",
-          "Saturday",
-          "Sunday"
-        ],
-        "opens": "00:00",
-        "closes": "23:59"
+      {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "name": "Home",
+            "item": "https://deckpointlleida.com/"
+          }
+        ]
       },
-      "sameAs": [
-        "https://www.instagram.com/deckpointlleida"
-      ]
-    }
+      {
+        "@context": "https://schema.org",
+        "@type": "LocalBusiness",
+        "name": "DeckPoint Lleida",
+        "image": "https://deckpointlleida.com/favicon.png",
+        "@id": "https://deckpointlleida.com/",
+        "url": "https://deckpointlleida.com/",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Lleida",
+          "postalCode": "25001",
+          "addressCountry": "ES"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": 41.6176,
+          "longitude": 0.6206
+        }
+      }
+    ]
     </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -111,20 +157,20 @@
             </a>
           </div>
           <div class="search-container">
-            <input type="text" id="card-search" data-i18n-placeholder="searchPlaceholder" placeholder="Busca tu carta (MTG, Pokémon, Yu-Gi-Oh)..." autocomplete="off">
-            <button id="search-btn" aria-label="Buscar">
+            <input type="text" id="card-search" data-i18n-placeholder="searchPlaceholder" placeholder="Busca tu carta (MTG, Pokémon, Yu-Gi-Oh)..." autocomplete="off" aria-label="Buscador de cartas TCG">
+            <button id="search-btn" aria-label="Confirmar búsqueda">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
             </button>
           </div>
-          <div class="nav-controls">
+          <div class="nav-controls" role="group" aria-label="Controles de navegación y filtros">
             <div class="filter-group">
-              <select id="game-filter">
+              <select id="game-filter" aria-label="Filtrar por juego">
                 <option value="all" data-i18n="allGames">Todos los juegos</option>
                 <option value="mtg" data-i18n="mtg">Magic: The Gathering</option>
                 <option value="pokemon" data-i18n="pokemon">Pokémon TCG</option>
                 <option value="yugioh" data-i18n="yugioh">Yu-Gi-Oh!</option>
               </select>
-              <select id="price-sort" class="hidden">
+              <select id="price-sort" class="hidden" aria-label="Ordenar resultados">
                 <option value="default" data-i18n="sortBy">Ordenar por...</option>
                 <option value="asc" data-i18n="priceLow">Precio: Bajo a Alto</option>
                 <option value="desc" data-i18n="priceHigh">Precio: Alto a Bajo</option>
@@ -132,10 +178,10 @@
                 <option value="za" data-i18n="sortZA">Nombre: Z - A</option>
               </select>
             </div>
-            <div class="lang-switcher">
-              <button class="lang-btn" data-lang="es">ES</button>
-              <button class="lang-btn" data-lang="ca">CA</button>
-              <button class="lang-btn" data-lang="en">EN</button>
+            <div class="lang-switcher" role="radiogroup" aria-label="Seleccionar idioma">
+              <button class="lang-btn" data-lang="es" aria-label="Español">ES</button>
+              <button class="lang-btn" data-lang="ca" aria-label="Catalàn">CA</button>
+              <button class="lang-btn" data-lang="en" aria-label="English">EN</button>
             </div>
           </div>
         </nav>
@@ -204,8 +250,23 @@
               <span>Email: deckpointlleida@gmail.com</span>
             </a>
           </div>
-          <p data-i18n="footerText">2026 DeckPoint Lleida - Tu comparador TCG definitivo.</p>
-          
+          <!-- FAQ Section for SEO -->
+          <section class="seo-faq">
+            <div class="faq-container">
+              <h3 data-i18n="faqTitle">Preguntas Frecuentes sobre Precios TCG</h3>
+              <div class="faq-grid">
+                <div class="faq-item">
+                  <h4 data-i18n="faq1Q">¿Dónde comprar cartas TCG baratas en España?</h4>
+                  <p data-i18n="faq1A">En DeckPoint Lleida comparamos tiendas como Cardmarket y TCGPlayer para que siempre encuentres el precio más bajo.</p>
+                </div>
+                <div class="faq-item">
+                  <h4 data-i18n="faq2Q">¿Cómo saber el valor de una carta Pokémon o Magic?</h4>
+                  <p data-i18n="faq2A">Simplemente busca el nombre de la carta en nuestro buscador y verás el precio de mercado actualizado en tiempo real.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
           <!-- Visually Hidden SEO Section -->
           <div class="sr-only" style="position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0;">
             <h2>Comparador de Precios TCG en Lleida y España</h2>
@@ -214,6 +275,32 @@
           </div>
         </div>
       </footer>
+
+      <!-- FAQ JSON-LD Schema (Top Tier SEO) -->
+      <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Dónde comprar cartas TCG baratas en España?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "En DeckPoint Lleida comparamos tiendas como Cardmarket y TCGPlayer para que siempre encuentres el precio más bajo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo saber el valor de una carta Pokémon o Magic?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Simplemente busca el nombre de la carta en nuestro buscador y verás el precio de mercado actualizado en tiempo real."
+            }
+          }
+        ]
+      }
+      </script>
     </div>
     <script type="module" src="src/main.js"></script>
   </body>

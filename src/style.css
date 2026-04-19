@@ -247,3 +247,50 @@ body::before {
 .skeleton { background: linear-gradient(90deg, #12121e 25%, #1a1a2e 50%, #12121e 75%); background-size: 200% 100%; animation: skeletonLoading 1.5s infinite linear; }
 @keyframes skeletonLoading { from { background-position: 200% 0; } to { background-position: -200% 0; } }
 .skeleton-card { height: 450px; border-radius: 24px; }
+
+/* FAQ Section Styling */
+.seo-faq {
+  margin-top: 4rem;
+  padding: 3rem;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 24px;
+}
+.seo-faq h3 {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  color: var(--accent-color);
+}
+.faq-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+.faq-item h4 {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  color: white;
+}
+.faq-item p {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+  .faq-grid { grid-template-columns: 1fr; }
+  .seo-faq { padding: 1.5rem; }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

@@ -28,6 +28,14 @@ const modalOverlay = cardModal?.querySelector('.modal-overlay');
 function init() {
   setLanguage(state.lang);
 
+  // Deep-linking: Handle search from URL params (?q= or ?s=)
+  const urlParams = new URLSearchParams(window.location.search);
+  const query = urlParams.get('q') || urlParams.get('s');
+  if (query) {
+    if (searchInput) searchInput.value = query;
+    handleSearch(query);
+  }
+
   searchBtn?.addEventListener('click', (e) => {
     e.preventDefault();
     handleSearch();
@@ -65,6 +73,42 @@ function init() {
   });
 
   initTiltEffect();
+}
+
+async function handleSearch(manualQuery = null) {
+  if (searchLock) return;
+  const query = manualQuery || searchInput?.value.trim();
+  if (!query) return;
+  
+  state.searchQuery = query;
+  searchLock = true;
+  showSkeleton();
+
+  // Update URL without reloading (clean deep-linking)
+  const newUrl = new URL(window.location);
+  newUrl.searchParams.set('q', query);
+  window.history.pushState({}, '', newUrl);
+
+  // Track event in GA4
+  if (typeof gtag === 'function') {
+    gtag('event', 'search', {
+      search_term: query,
+      game: state.currentGame
+    });
+  }
+  
+  try {
+    const cards = await fetchAllGames(query, state.currentGame);
+    state.currentCards = cards;
+    renderResults(cards);
+  } catch (error) {
+    console.error('Search error:', error);
+    renderError('Error en la búsqueda.');
+  } finally {
+    hideLoading();
+    // Prevent accidental clicks for 400ms after results appear
+    setTimeout(() => { searchLock = false; }, 400);
+  }
 }
 
 function setLanguage(lang) {
@@ -276,9 +320,9 @@ function renderResults(cards) {
     const gClass = card.game === t('pokemon') ? 'pokemon' : card.game === t('yugioh') ? 'yu-gi-oh' : 'magic';
     
     cardEl.innerHTML = `
-      <div class="card-image"><span class="game-tag game-${gClass}">${card.game}</span><img src="${card.image}" loading="lazy"></div>
+      <div class="card-image"><span class="game-tag game-${gClass}">${card.game}</span><img src="${card.image}" loading="lazy" decoding="async" alt="${card.name}"></div>
       <div class="card-info"><h3>${card.name}</h3><p class="set-name">${card.set}</p>
-      <table class="price-table">${card.prices.map(p => `<tr><td>${p.store}</td><td class="price-cell">${p.url && p.price !== 'N/A' ? `<a href="${p.url}" target="_blank" class="price-value" onclick="event.stopPropagation()">${p.price}</a>` : `<span>${p.price}</span>`}</td></tr>`).join('')}</table></div>
+      <table class="price-table">${card.prices.map(p => `<tr><td>${p.store}</td><td class="price-cell">${p.url && p.price !== 'N/A' ? `<a href="${p.url}" target="_blank" class="price-value" onclick="event.stopPropagation()" title="${t('buyLabel', { store: p.store })}">${p.price}</a>` : `<span>${p.price}</span>`}</td></tr>`).join('')}</table></div>
     `;
 
     cardEl.addEventListener('click', (e) => {
@@ -307,6 +351,16 @@ function hideLoading() {
 
 function openModal(card) {
   if (!cardModal) return;
+
+  // Track card view in GA4
+  if (typeof gtag === 'function') {
+    gtag('event', 'view_item', {
+      item_name: card.name,
+      item_category: card.game,
+      item_variant: card.set
+    });
+  }
+  
   const img = document.getElementById('modal-card-img');
   if (img) img.src = card.image;
   
@@ -332,6 +386,35 @@ function openModal(card) {
   document.title = `${card.name} | ${baseTitle}`;
   if (img) img.alt = card.name;
 
+  // Top Tier: Dynamic Product Schema for Google Rich Results
+  const schemaId = 'dynamic-product-schema';
+  let schemaScript = document.getElementById(schemaId);
+  if (!schemaScript) {
+    schemaScript = document.createElement('script');
+    schemaScript.id = schemaId;
+    schemaScript.type = 'application/ld+json';
+    document.head.appendChild(schemaScript);
+  }
+
+  const minPrice = Math.min(...card.prices.map(p => parseFloat(p.price.replace('€', ''))).filter(p => !isNaN(p)));
+  const maxPrice = Math.max(...card.prices.map(p => parseFloat(p.price.replace('€', ''))).filter(p => !isNaN(p)));
+
+  schemaScript.textContent = JSON.stringify({
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": card.name,
+    "image": card.image,
+    "description": card.text || `Carta TCG ${card.name} del set ${card.set}`,
+    "brand": { "@type": "Brand", "name": card.game },
+    "offers": {
+      "@type": "AggregateOffer",
+      "priceCurrency": "EUR",
+      "lowPrice": isFinite(minPrice) ? minPrice : 0,
+      "highPrice": isFinite(maxPrice) ? maxPrice : 0,
+      "offerCount": card.prices.filter(p => p.price !== 'N/A').length
+    }
+  });
+
   cardModal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -341,6 +424,10 @@ function closeModal() {
   document.body.style.overflow = '';
   // Restore original title
   document.title = translations[state.lang].title;
+
+  // Remove dynamic schema
+  const schemaScript = document.getElementById('dynamic-product-schema');
+  if (schemaScript) schemaScript.remove();
 }
 
 function initTiltEffect() {
@@ -369,3 +456,12 @@ function renderError(message) {
 }
 
 init();
+
+// Top Tier: Service Worker Registration for PWA Offline Support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js')
+      .then(reg => console.log('SW Registered', reg))
+      .catch(err => console.log('SW Error', err));
+  });
+}
