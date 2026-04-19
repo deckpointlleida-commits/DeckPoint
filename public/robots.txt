@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://deckpointlleida.com/sitemap.xml

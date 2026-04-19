@@ -82,8 +82,13 @@ function updateContent() {
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.dataset.i18n;
     if (dict[key]) {
-      if (el.tagName === 'TITLE') document.title = dict[key];
-      else el.innerHTML = dict[key];
+      if (el.tagName === 'TITLE') {
+        document.title = dict[key];
+      } else if (el.tagName === 'META') {
+        el.setAttribute('content', dict[key]);
+      } else {
+        el.innerHTML = dict[key];
+      }
     }
   });
   document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
@@ -322,6 +327,11 @@ function openModal(card) {
     prices.innerHTML = card.prices.map(p => p.price === 'N/A' ? '' : `<a href="${p.url || '#'}" target="_blank" class="purchase-link"><span>${p.store}</span><span class="price">${p.price}</span></a>`).join('') + `<p class="modal-disclaimer">${t('modalDisclaimer')}</p>`;
   }
 
+  // Update title for social sharing context (though SPA, good for UX/Modern Bots)
+  const baseTitle = translations[state.lang].title;
+  document.title = `${card.name} | ${baseTitle}`;
+  if (img) img.alt = card.name;
+
   cardModal.classList.remove('hidden');
   document.body.style.overflow = 'hidden';
 }
@@ -329,6 +339,8 @@ function openModal(card) {
 function closeModal() {
   cardModal?.classList.add('hidden');
   document.body.style.overflow = '';
+  // Restore original title
+  document.title = translations[state.lang].title;
 }
 
 function initTiltEffect() {
